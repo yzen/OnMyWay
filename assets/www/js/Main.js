@@ -4,7 +4,13 @@
 
     fluid.demands("omw.app.impl", "main", {
         options: {
-            components: {}
+            components: {
+                start: {
+                    type: "omw.start",
+                    container: ".omwc-start",
+                    createOnEvent: "afterFetch"
+                }
+            }
         }
     });
 

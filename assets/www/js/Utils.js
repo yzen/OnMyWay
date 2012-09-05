@@ -2,6 +2,8 @@
 
     "use strict";
 
+    fluid.setLogging(true);
+
     var eUC = "encodeURIComponent:";
 
     fluid.registerNamespace("omw");
