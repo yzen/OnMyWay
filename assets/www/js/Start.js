@@ -6,11 +6,18 @@
         gradeNames: ["autoInit", "fluid.rendererComponent"],
         selectors: {
             locationButton: ".omwc-start-locationButton",
-            locationInput: ".omwc-start-locationInput"
+            locationInput: ".omwc-start-locationInput",
+            result: ".omwc-start-result"
         },
         styles: {
             locationButton: "omw-start-locationButton",
-            locationInput: "omw-start-locationInput"
+            locationInput: "omw-start-locationInput",
+            result: "omw-start-result"
+        },
+        model: {
+            results: [{
+                formatted_address: "TEST"
+            }]
         },
         protoTree: {
             locationInput: {
@@ -18,19 +25,44 @@
                 decorators: {
                     addClass: "{styles}.locationInput"
                 }
+            },
+            expander: {
+                repeatID: "result",
+                type: "fluid.renderer.repeat",
+                pathAs: "result",
+                controlledBy: "results",
+                tree: {
+                    value: "${{result}.formatted_address}",
+                    decorators: {"addClass": "{styles}.result"}
+                }
             }
         },
+        repeatingSelectors: ["result"],
         components: {
             geocoding: {
                 type: "omw.geocoding",
-                container: "{omw.start}.dom.locationInput"
+                container: "{omw.start}.dom.locationInput",
+                options: {
+                    listeners: {
+                        onResults: "{omw.start}.onResults"
+                    }
+                }
             }
         },
         renderOnInit: true
     });
+    omw.start.preInit = function (that) {
+        that.onResults = function (data) {
+            that.applier.requestChange("results", data.results);
+            that.refreshView();
+        };
+    };
 
     fluid.defaults("omw.geocoding", {
         gradeNames: ["autoInit", "fluid.viewComponent"],
+        events: {
+            onResults: null
+        },
         components: {
             geocodeSource: {
                 type: "omw.dataSource.URL",
@@ -51,13 +83,13 @@
             that.geocodeSource.get({
                 address: address
             }, function (data) {
-                that.applier.requestChange("results", data);
-                console.log(JSON.stringify(data));
                 delete that.searching;
                 if (that.address) {
                     that.getGeocode(that.address);
                     delete that.address;
+                    return;
                 }
+                that.events.onResults.fire(data);
             });
         };
         that.applier.modelChanged.addListener("address", function () {
@@ -74,7 +106,7 @@
             clearTimeout(that.outFirer);
             that.outFirer = setTimeout(function () {
                 var address = that.container.val();
-                if (address.lenth < minSize) {
+                if (address.lenth < that.options.minSize) {
                     return;
                 }
                 if (address !== that.model.address) {
