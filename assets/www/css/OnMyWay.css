@@ -45,8 +45,11 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
     padding: 20px;
 }
-.start {
-    line-height: 2;
+.block {
+    text-align: center;
+}
+.omw-start-locationInput {
+    width: 80%;
 }
 .main .container .arrow {
     width: 100%;
