@@ -48,7 +48,7 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
 .block {
     text-align: center;
 }
-.omw-start-locationInput {
+.omw-start-routeInput {
     width: 80%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     border: 1px solid #BCBDBD;
@@ -58,12 +58,12 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
     background-clip: padding-box;
     font-size: inherit;
 }
-.omw-start-results {
+.omw-start-routes {
     width: 80%;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
     margin: auto;
 }
-.omw-start-result {
+.omw-start-route {
     font-family: inherit;
     font-size: inherit;
     background-color: #F3F4EB;

@@ -39,15 +39,18 @@
                         afterFetch: "{omw.app.impl}.events.afterFetch"
                     }
                 }
-            },
+            }/*
+,
             arrow: {
                 type: "omw.arrow",
                 container: ".arrow"
             }
+*/
         }
     });
 
-    fluid.defaults("omw.arrow", {
+    /*
+fluid.defaults("omw.arrow", {
         gradeNames: ["fluid.viewComponent", "autoInit"],
         colors: {
             main: "#E92128",
@@ -89,5 +92,6 @@
         context.lineTo(context.canvas.width, 0);
         context.fill();
     };
+*/
 
 })(jQuery, fluid);
