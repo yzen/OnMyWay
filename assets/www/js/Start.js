@@ -153,9 +153,14 @@
 
     omw.autocomplete.preInit = function (that) {
         that.applier.modelChanged.addListener("value", function () {
+            if (!that.model.value) {
+                that.events.onMatch.fire([]);
+            }
             var list = fluid.copy(that.model.list),
                 matches = fluid.remove_if(list, function (route) {
-                    if (route.title.indexOf(that.model.value) < 0) {
+                    var titleUpper = route.title.toUpperCase(),
+                        valueUpper = that.model.value.toUpperCase();
+                    if (titleUpper.indexOf(valueUpper) < 0) {
                         return true;
                     }
                 });
@@ -169,6 +174,7 @@
             that.outFirer = setTimeout(function () {
                 var value = that.container.val();
                 if (value.length < that.options.minSize) {
+                    that.applier.requestChange("value", undefined);
                     return;
                 }
                 if (value !== that.model.value) {
