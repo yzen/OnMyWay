@@ -6,11 +6,13 @@
         gradeNames: ["autoInit", "fluid.rendererComponent"],
         selectors: {
             routeInput: ".omwc-start-routeInput",
+            stopInput: ".omwc-start-stopInput"
             routes: ".omwc-start-routes"
         },
         styles: {
             routeInput: "omw-start-routeInput"
         },
+        parentBundle: "{messageBundle}.resolver",
         selectorsToIgnore: ["routes"],
         components: {
             routesAutocomplete: {
@@ -37,20 +39,36 @@
             onRoute: null
         },
         listeners: {
-            onRoute: "{that}.onRoute"
+            onRoute: "{that}.onRoute",
+            prepareModelForRender: "{that}.prepareModelForRender"
         },
         protoTree: {
             routeInput: {
                 value: "${route.title}",
-                decorators: {
+                decorators: [{
+                    type: "attrs",
+                    attributes: {
+                        placeholder: "${placeholders.routeInput}"
+                    }
+                }, {
                     addClass: "{styles}.routeInput"
-                }
+                }]
             }
+        },
+        placeholders: {
+            routeInput: "routeInput"
         },
         renderOnInit: true
     });
 
     omw.start.preInit = function (that) {
+        that.prepareModelForRender = function () {
+            var placeholders = {};
+            fluid.each(that.options.placeholders, function (val, key) {
+                placeholders[key] = that.options.parentBundle.resolve(val);
+            });
+            that.applier.requestChange("placeholders", placeholders);
+        };
         that.onRoute = function (route) {
             that.applier.requestChange("route", route);
             that.locate("routeInput").val(that.model.route.title);
@@ -155,6 +173,7 @@
         that.applier.modelChanged.addListener("value", function () {
             if (!that.model.value) {
                 that.events.onMatch.fire([]);
+                return;
             }
             var list = fluid.copy(that.model.list),
                 matches = fluid.remove_if(list, function (route) {
