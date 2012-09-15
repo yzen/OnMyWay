@@ -6,14 +6,15 @@
         gradeNames: ["autoInit", "fluid.rendererComponent"],
         selectors: {
             routeInput: ".omwc-start-routeInput",
-            stopInput: ".omwc-start-stopInput"
+            stopInput: ".omwc-start-stopInput",
+            stops: ".omwc-start-stops",
             routes: ".omwc-start-routes"
         },
         styles: {
-            routeInput: "omw-start-routeInput"
+            input: "omw-start-input"
         },
         parentBundle: "{messageBundle}.resolver",
-        selectorsToIgnore: ["routes"],
+        selectorsToIgnore: ["routes", "stops"],
         components: {
             routesAutocomplete: {
                 type: "omw.autocomplete",
@@ -29,17 +30,65 @@
                     responseParser: "omw.autocomplete.parseRoutes"
                 }
             },
+            stopsAutocomplete: {
+                type: "omw.autocomplete",
+                container: "{omw.start}.dom.stopInput",
+                options: {
+                    url: "http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=ttc&r=%route",
+                    events: {
+                        onMatch: {
+                            event: "{omw.start}.events.onStops"
+                        }
+                    },
+                    model: {
+                        route: "{omw.start}.model.route.tag"
+                    },
+                    termMap: {
+                        route: "%route"
+                    },
+                    dataType: "xml",
+                    responseParser: "omw.autocomplete.parseStops"
+                },
+                createOnEvent: "onRoute"
+            },
+            stops: {
+                type: "omw.results",
+                container: "{omw.start}.dom.stops",
+                options: {
+                    events: {
+                        onResults: {
+                            event: "{omw.start}.events.onStops"
+                        },
+                        onResult: {
+                            event: "{omw.start}.events.onStop"
+                        }
+                    }
+                }
+            },
             routes: {
-                type: "omw.routes",
-                container: "{omw.start}.dom.routes"
+                type: "omw.results",
+                container: "{omw.start}.dom.routes",
+                options: {
+                    events: {
+                        onResults: {
+                            event: "{omw.start}.events.onRoutes"
+                        },
+                        onResult: {
+                            event: "{omw.start}.events.onRoute"
+                        }
+                    }
+                }
             }
         },
         events: {
             onRoutes: null,
-            onRoute: null
+            onStops: null,
+            onRoute: null,
+            onStop: null
         },
         listeners: {
             onRoute: "{that}.onRoute",
+            onStop: "{that}.onStop",
             prepareModelForRender: "{that}.prepareModelForRender"
         },
         protoTree: {
@@ -51,14 +100,30 @@
                         placeholder: "${placeholders.routeInput}"
                     }
                 }, {
-                    addClass: "{styles}.routeInput"
+                    addClass: "{styles}.input"
+                }]
+            },
+            stopInput: {
+                value: "${stop.stopTitle}",
+                decorators: [{
+                    type: "attrs",
+                    attributes: {
+                        placeholder: "${placeholders.stopInput}"
+                    }
+                }, {
+                    addClass: "{styles}.input"
+                }, {
+                    type: "jQuery",
+                    func: "hide"
                 }]
             }
         },
         placeholders: {
-            routeInput: "routeInput"
+            routeInput: "routeInput",
+            stopInput: "stopInput"
         },
-        renderOnInit: true
+        renderOnInit: true,
+        delay: 500
     });
 
     omw.start.preInit = function (that) {
@@ -70,70 +135,87 @@
             that.applier.requestChange("placeholders", placeholders);
         };
         that.onRoute = function (route) {
-            that.applier.requestChange("route", route);
             that.locate("routeInput").val(that.model.route.title);
+            that.applier.requestChange("route.tag", route.tag);
         };
+        that.onStop = function (stop) {
+            that.applier.requestChange("stop", stop);
+            that.locate("stopInput").val(that.model.stop.title);
+        };
+
+        that.applier.modelChanged.addListener("route.tag", function () {
+            that.locate("stopInput").show();
+        });
     };
 
-    fluid.defaults("omw.routes", {
+    omw.start.postInit = function (that) {
+        that.locate("routeInput").keydown(function () {
+            clearTimeout(that.outFirer);
+            var oldVal = that.locate("routeInput").val();
+            that.outFirer = setTimeout(function () {
+                if (that.locate("routeInput").val() !== oldVal) {
+                    that.locate("stopInput").hide();
+                }
+            }, that.options.delay);
+        });
+    };
+
+    fluid.defaults("omw.results", {
         gradeNames: ["autoInit", "fluid.rendererComponent"],
         events: {
-            onRoutes: {
-                event: "{omw.start}.events.onRoutes"
-            },
-            onRoute: {
-                event: "{omw.start}.events.onRoute"
-            }
+            onResults: null,
+            onResult: null
+
         },
         listeners: {
-            onRoutes: "{that}.onRoutes",
-            onRoute: "{that}.onRoute"
+            onResults: "{that}.onResults",
+            onResult: "{that}.onResult"
         },
         selectors: {
-            route: ".omwc-start-route"
+            result: ".omwc-start-result"
         },
         styles: {
-            route: "omw-start-route"
+            result: "omw-start-result"
         },
         model: {},
-        repeatingSelectors: ["route"],
+        repeatingSelectors: ["result"],
         renderOnInit: true,
-        produceTree: "omw.routes.produceTree"
+        produceTree: "omw.results.produceTree"
     });
 
-    omw.routes.produceTree = function (that) {
+    omw.results.produceTree = function (that) {
         return {
             expander: {
-                repeatID: "route",
+                repeatID: "result",
                 type: "fluid.renderer.repeat",
-                pathAs: "route",
-                controlledBy: "routes",
+                pathAs: "result",
+                controlledBy: "results",
                 tree: {
-                    value: "${{route}.title}",
+                    value: "${{result}.title}",
                     decorators: [{
-                        "addClass": "{styles}.route"
+                        "addClass": "{styles}.result"
                     }, {
                         type: "jQuery",
                         func: "click",
-                        args: that.selectRoute
+                        args: that.selectResult
                     }]
                 }
             }
         };
     };
 
-    omw.routes.preInit = function (that) {
-        that.selectRoute = function (event) {
-            var index = that.locate("route").index(event.currentTarget),
-                route = that.model.routes[index];
-            that.events.onRoute.fire(route);
+    omw.results.preInit = function (that) {
+        that.selectResult = function (event) {
+            var index = that.locate("result").index(event.currentTarget),
+                result = that.model.results[index];
+            that.events.onResult.fire(result);
         };
-        that.onRoutes = function (data) {
-            that.applier.requestChange("routes", data);
+        that.onResults = function (data) {
+            that.applier.requestChange("results", data);
             that.refreshView();
         };
-        that.onRoute = function () {
-            that.applier.requestChange("routes", undefined);
+        that.onResult = function () {
+            that.applier.requestChange("results", undefined);
             that.refreshView();
         };
     };
@@ -156,7 +238,7 @@
             }
         },
         minSize: 1,
-        delay: 500
+        delay: "{omw.start}.options.delay"
     });
 
     omw.autocomplete.parseRoutes = function (data) {
@@ -169,6 +251,19 @@
         });
     };
 
+    omw.autocomplete.parseStops = function (data) {
+        return fluid.transform($("route>stop", data), function (stop) {
+            stop = $(stop);
+            return {
+                tag: stop.attr("tag"),
+                title: stop.attr("title"),
+                id: stop.attr("stopId"),
+                lat: stop.attr("lat"),
+                lon: stop.attr("lon")
+            };
+        });
+    };
+
     omw.autocomplete.preInit = function (that) {
         that.applier.modelChanged.addListener("value", function () {
             if (!that.model.value) {
@@ -176,8 +271,8 @@
                 return;
             }
             var list = fluid.copy(that.model.list),
-                matches = fluid.remove_if(list, function (route) {
-                    var titleUpper = route.title.toUpperCase(),
+                matches = fluid.remove_if(list, function (match) {
+                    var titleUpper = match.title.toUpperCase(),
                         valueUpper = that.model.value.toUpperCase();
                     if (titleUpper.indexOf(valueUpper) < 0) {
                         return true;
