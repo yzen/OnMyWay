@@ -135,7 +135,7 @@
             that.applier.requestChange("placeholders", placeholders);
         };
         that.onRoute = function (route) {
-            that.locate("routeInput").val(that.model.route.title);
+            that.locate("routeInput").val(route.title);
             that.applier.requestChange("route.tag", route.tag);
         };
         that.onStop = function (stop) {
