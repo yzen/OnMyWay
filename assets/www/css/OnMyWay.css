@@ -17,7 +17,6 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
 input, button {
     font-family: inherit;
     font-size: 100%;
-    font-weight: bold;
 }
 .clearfix:after {
     clear: both;
@@ -45,7 +44,7 @@ input, button {
 .main .container .section {
     background-color: #FFFFFF;
     box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-    padding: 20px;
+    padding: 10px;
     margin: 10px 0 15px 0;
 }
 .omw-start-input {

@@ -51,8 +51,26 @@
             onStopSelected: null,
             afterStopSelected: null,
             onStopUpdated: null
+        },
+        listeners: {
+            afterStopSelected: "{that}.afterStopSelected",
+            onStopUpdated: "{that}.hidePredictions",
+            onRouteUpdated: "{that}.hidePredictions"
         }
     });
+
+    omw.start.preInit = function (that) {
+        that.afterStopSelected = function () {
+            that.locate("predictions").show();
+        };
+        that.hidePredictions = function () {
+            that.locate("predictions").hide();
+        };
+    };
+
+    omw.start.postInit = function (that) {
+        that.locate("predictions").hide();
+    };
 
     omw.start.finalInit = function (that) {
         that.events.initRoutes.fire();
@@ -144,10 +162,12 @@
             afterFetch: "{that}.refreshView"
         },
         selectors: {
-            prediction: ".omwc-start-prediction"
+            message: ".mwc-start-message",
+            direction: ".omwc-start-direction"
         },
         styles: {
-            prediction: "omw-start-result"
+            message: "omw-start-result",
+            direction: "omw-start-result"
         },
         components: {
             dataSource: {
@@ -167,42 +187,56 @@
             route: "{omw.start}.model.routes.result.tag",
             stop: "{omw.start}.model.stops.result.tag"
         },
-        repeatingSelectors: ["prediction"],
+        repeatingSelectors: ["direction", "message"],
         protoTree: {
-            expander: {
-                repeatID: "prediction",
+            expander: [{
+                repeatID: "message",
                 type: "fluid.renderer.repeat",
-                pathAs: "prediction",
-                controlledBy: "predictions",
+                pathAs: "message",
+                controlledBy: "messages",
                 tree: {
-                    value: "${{prediction}}",
+                    value: "${{message}}",
                     decorators: {
-                        addClass: "{styles}.prediction"
+                        addClass: "{styles}.message"
                     }
                 }
-            }
+            }, {
+                repeatID: "direction",
+                type: "fluid.renderer.repeat",
+                pathAs: "direction",
+                controlledBy: "directions",
+                tree: {
+                    value: "${{direction}.title}",
+                    decorators: {
+                        addClass: "{styles}.direction"
+                    }
+                }
+            }]
         }
     });
 
     omw.predictions.responseParser = function (data) {
         var togo = {
-            directions: {}
-        }
+            directions: []
+        };
         fluid.each($("direction", data), function (direction) {
             direction = $(direction);
-            togo.directions[direction.attr("title")] = fluid.transform($("prediction", direction), function (prediction) {
-                prediction = $(prediction);
-                return {
-                    epochTime: prediction.attr("epochTime"),
-                    seconds: prediction.attr("seconds"),
-                    minutes: prediction.attr("minutes"),
-                    isDeparture: prediction.attr("isDeparture"),
-                    branch: prediction.attr("branch"),
-                    dirTag: prediction.attr("dirTag"),
-                    vehicle: prediction.attr("vehicle"),
-                    block: prediction.attr("block"),
-                    tripTag: prediction.attr("tripTag")
-                };
+            togo.directions.push({
+                title: direction.attr("title"),
+                predictions: fluid.transform($("prediction", direction), function (prediction) {
+                    prediction = $(prediction);
+                    return {
+                        epochTime: prediction.attr("epochTime"),
+                        seconds: prediction.attr("seconds"),
+                        minutes: prediction.attr("minutes"),
+                        isDeparture: prediction.attr("isDeparture"),
+                        branch: prediction.attr("branch"),
+                        dirTag: prediction.attr("dirTag"),
+                        vehicle: prediction.attr("vehicle"),
+                        block: prediction.attr("block"),
+                        tripTag: prediction.attr("tripTag")
+                    };
+                })
             });
         });
         togo.messages = fluid.transform($("message", data), function (message) {
@@ -219,7 +253,8 @@
 
     omw.predictions.finalInit = function (that) {
         that.dataSource.get(that.model, function (data) {
-            that.applier.requestChange("predictions", data);
+            that.applier.requestChange("directions", data.directions);
+            that.applier.requestChange("messages", data.messages);
             that.events.afterFetch.fire();
         });
     };
