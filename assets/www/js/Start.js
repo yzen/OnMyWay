@@ -12,8 +12,7 @@
         },
         model: {
             routes: {},
-            stops: {},
-            predictions: {}
+            stops: {}
         },
         components: {
             routes: {
@@ -34,7 +33,10 @@
                 type: "omw.predictions",
                 container: "{omw.start}.dom.predictions",
                 options: {
-                    model: "{omw.start}.model.predictions"
+                    model: {
+                        route: "{omw.start}.model.routes.result.tag",
+                        stop: "{omw.start}.model.stops.result.tag"
+                    }
                 },
                 createOnEvent: "afterStopSelected"
             }
@@ -182,10 +184,6 @@
                     responseParser: "omw.predictions.responseParser"
                 }
             }
-        },
-        model: {
-            route: "{omw.start}.model.routes.result.tag",
-            stop: "{omw.start}.model.stops.result.tag"
         },
         repeatingSelectors: ["direction", "message"],
         protoTree: {
@@ -372,6 +370,8 @@
             that.container.show();
         };
         that.hideOn = function () {
+            that.applier.requestChange("result", undefined);
+            that.locate("input").val("");
             that.container.hide();
         };
     };
