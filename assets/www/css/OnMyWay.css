@@ -14,9 +14,10 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
     margin: 0;
     padding: 0;
 }
-input, button, textarea {
+input, button {
     font-family: inherit;
     font-size: 100%;
+    font-weight: bold;
 }
 .clearfix:after {
     clear: both;
@@ -64,4 +65,9 @@ input, button, textarea {
     overflow: hidden;
 	text-overflow: ellipsis;
 	text-align: left;
+	border-bottom: thin solid #E5E5E5;
+	padding: 6px 5%;
+}
+.omw-start-result:last-child {
+    border-bottom: none;
 }

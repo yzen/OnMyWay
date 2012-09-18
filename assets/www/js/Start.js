@@ -7,11 +7,13 @@
         gradeNames: ["autoInit", "fluid.viewComponent"],
         selectors: {
             routes: ".omwc-start-routes",
-            stops: ".omwc-start-stops"
+            stops: ".omwc-start-stops",
+            predictions: ".omwc-start-predictions"
         },
         model: {
             routes: {},
-            stops: {}
+            stops: {},
+            predictions: {}
         },
         components: {
             routes: {
@@ -27,6 +29,14 @@
                 options: {
                     model: "{omw.start}.model.stops"
                 }
+            },
+            predictions: {
+                type: "omw.predictions",
+                container: "{omw.start}.dom.predictions",
+                options: {
+                    model: "{omw.start}.model.predictions"
+                },
+                createOnEvent: "afterStopSelected"
             }
         },
         events: {
@@ -38,7 +48,9 @@
                 event: "onRouteSelected"
             },
             onStops: null,
-            onStop: null
+            onStopSelected: null,
+            afterStopSelected: null,
+            onStopUpdated: null
         }
     });
 
@@ -96,7 +108,13 @@
                     event: "{omw.start}.events.onStops"
                 },
                 onResult: {
-                    event: "{omw.start}.events.onStop"
+                    event: "{omw.start}.events.onStopSelected"
+                },
+                afterResult: {
+                    event: "{omw.start}.events.afterStopSelected"
+                },
+                updated: {
+                    event: "{omw.start}.events.onStopUpdated"
                 },
                 showOn: {
                     event: "{omw.start}.events.onRouteSelected"
@@ -115,6 +133,96 @@
             }
         }
     });
+
+    fluid.defaults("omw.predictions", {
+        gradeNames: ["autoInit", "fluid.rendererComponent"],
+        parentBundle: "{messageBundle}.resolver",
+        events: {
+            afterFetch: null
+        },
+        listeners: {
+            afterFetch: "{that}.refreshView"
+        },
+        selectors: {
+            prediction: ".omwc-start-prediction"
+        },
+        styles: {
+            prediction: "omw-start-result"
+        },
+        components: {
+            dataSource: {
+                type: "omw.dataSource.URL",
+                options: {
+                    url: "http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=ttc&r=%route&s=%stop",
+                    termMap: {
+                        route: "%route",
+                        stop: "%stop"
+                    },
+                    dataType: "xml",
+                    responseParser: "omw.predictions.responseParser"
+                }
+            }
+        },
+        model: {
+            route: "{omw.start}.model.routes.result.tag",
+            stop: "{omw.start}.model.stops.result.tag"
+        },
+        repeatingSelectors: ["prediction"],
+        protoTree: {
+            expander: {
+                repeatID: "prediction",
+                type: "fluid.renderer.repeat",
+                pathAs: "prediction",
+                controlledBy: "predictions",
+                tree: {
+                    value: "${{prediction}}",
+                    decorators: {
+                        addClass: "{styles}.prediction"
+                    }
+                }
+            }
+        }
+    });
+
+    omw.predictions.responseParser = function (data) {
+        var togo = {
+            directions: {}
+        }
+        fluid.each($("direction", data), function (direction) {
+            direction = $(direction);
+            togo.directions[direction.attr("title")] = fluid.transform($("prediction", direction), function (prediction) {
+                prediction = $(prediction);
+                return {
+                    epochTime: prediction.attr("epochTime"),
+                    seconds: prediction.attr("seconds"),
+                    minutes: prediction.attr("minutes"),
+                    isDeparture: prediction.attr("isDeparture"),
+                    branch: prediction.attr("branch"),
+                    dirTag: prediction.attr("dirTag"),
+                    vehicle: prediction.attr("vehicle"),
+                    block: prediction.attr("block"),
+                    tripTag: prediction.attr("tripTag")
+                };
+            });
+        });
+        togo.messages = fluid.transform($("message", data), function (message) {
+            return $(message).attr("text");
+        });
+        return togo;
+    };
+
+    omw.predictions.preInit = function (that) {
+        that.refreshView = function () {
+            that.refreshView();
+        };
+    };
+
+    omw.predictions.finalInit = function (that) {
+        that.dataSource.get(that.model, function (data) {
+            that.applier.requestChange("predictions", data);
+            that.events.afterFetch.fire();
+        });
+    };
 
     fluid.defaults("omw.section", {
         gradeNames: ["autoInit", "fluid.rendererComponent"],
@@ -164,6 +272,7 @@
         events: {
             initAutocomplete: null,
             onResult: null,
+            afterResult: null,
             onResults: null,
             cleared: null,
             updated: null,
@@ -222,6 +331,7 @@
             that.applier.requestChange("result", result);
             that.locate("input").val(fluid.get(that.model, "result.title"));
             that.locate("results").hide();
+            that.events.afterResult.fire();
         };
         that.showOn = function () {
             that.container.show();
@@ -237,7 +347,6 @@
         }
         that.locate("input").keydown(function () {
             clearTimeout(that.outFirer);
-            var oldVal = that.locate("input").val();
             that.outFirer = setTimeout(function () {
                 if (!that.locate("input").val()) {
                     that.events.cleared.fire();
