@@ -1,5 +1,5 @@
 {
     "appName": "OnMyWay",
-    "routeInput": "Find your route",
-    "stopInput": "Find your stop"
+    "routeInput": "Type route",
+    "stopInput": "Type stop"
 }

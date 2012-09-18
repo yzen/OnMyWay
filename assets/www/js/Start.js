@@ -1,132 +1,208 @@
+/*global jQuery, fluid, omw*/
 (function (fluid, $) {
 
     "use strict";
 
     fluid.defaults("omw.start", {
-        gradeNames: ["autoInit", "fluid.rendererComponent"],
+        gradeNames: ["autoInit", "fluid.viewComponent"],
         selectors: {
-            routeInput: ".omwc-start-routeInput",
-            stopInput: ".omwc-start-stopInput",
-            stops: ".omwc-start-stops",
-            routes: ".omwc-start-routes"
+            routes: ".omwc-start-routes",
+            stops: ".omwc-start-stops"
+        },
+        model: {
+            routes: {},
+            stops: {}
+        },
+        components: {
+            routes: {
+                type: "omw.section",
+                container: "{omw.start}.dom.routes",
+                options: {
+                    model: "{omw.start}.model.routes"
+                }
+            },
+            stops: {
+                type: "omw.section",
+                container: "{omw.start}.dom.stops",
+                options: {
+                    model: "{omw.start}.model.stops"
+                }
+            }
+        },
+        events: {
+            initRoutes: null,
+            onRoutes: null,
+            onRouteSelected: null,
+            onRouteUpdated: null,
+            initStops: {
+                event: "onRouteSelected"
+            },
+            onStops: null,
+            onStop: null
+        }
+    });
+
+    omw.start.finalInit = function (that) {
+        that.events.initRoutes.fire();
+    };
+
+    fluid.demands("autocomplete", "routes", {
+        options: {
+            url: "http://webservices.nextbus.com/service/publicXMLFeed?command=routeList&a=ttc",
+            responseParser: "omw.autocomplete.parseRoutes"
+        }
+    });
+
+    fluid.demands("routes", "omw.start", {
+        options: {
+            events: {
+                onResults: {
+                    event: "{omw.start}.events.onRoutes"
+                },
+                onResult: {
+                    event: "{omw.start}.events.onRouteSelected"
+                },
+                updated: {
+                    event: "{omw.start}.events.onRouteUpdated"
+                },
+                initAutocomplete: {
+                    event: "{omw.start}.events.initRoutes"
+                }
+            },
+            nickName: "routes",
+            placeholders: {
+                input: "routeInput"
+            }
+        }
+    });
+
+    fluid.demands("autocomplete", "stops", {
+        options: {
+            url: "http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=ttc&r=%route",
+            model: {
+                route: "{omw.start}.model.routes.result.tag"
+            },
+            termMap: {
+                route: "%route"
+            },
+            responseParser: "omw.autocomplete.parseStops"
+        }
+    });
+
+    fluid.demands("stops", "omw.start", {
+        options: {
+            events: {
+                onResults: {
+                    event: "{omw.start}.events.onStops"
+                },
+                onResult: {
+                    event: "{omw.start}.events.onStop"
+                },
+                showOn: {
+                    event: "{omw.start}.events.onRouteSelected"
+                },
+                hideOn: {
+                    event: "{omw.start}.events.onRouteUpdated"
+                },
+                initAutocomplete: {
+                    event: "{omw.start}.events.initStops"
+                }
+            },
+            showOnInit: false,
+            nickName: "stops",
+            placeholders: {
+                input: "stopInput"
+            }
+        }
+    });
+
+    fluid.defaults("omw.section", {
+        gradeNames: ["autoInit", "fluid.rendererComponent"],
+        parentBundle: "{messageBundle}.resolver",
+        selectors: {
+            input: ".omwc-start-section-input",
+            results: ".omwc-start-section-results"
         },
         styles: {
             input: "omw-start-input"
         },
-        parentBundle: "{messageBundle}.resolver",
-        selectorsToIgnore: ["routes", "stops"],
         components: {
-            routesAutocomplete: {
-                type: "omw.autocomplete",
-                container: "{omw.start}.dom.routeInput",
+            context: {
+                type: "fluid.typeFount",
                 options: {
-                    url: "http://webservices.nextbus.com/service/publicXMLFeed?command=routeList&a=ttc",
-                    events: {
-                        onMatch: {
-                            event: "{omw.start}.events.onRoutes"
-                        }
-                    },
-                    dataType: "xml",
-                    responseParser: "omw.autocomplete.parseRoutes"
+                    targetTypeName: "{omw.section}.options.nickName"
                 }
             },
-            stopsAutocomplete: {
+            autocomplete: {
                 type: "omw.autocomplete",
-                container: "{omw.start}.dom.stopInput",
+                container: "{omw.section}.dom.input",
+                createOnEvent: "initAutocomplete",
                 options: {
-                    url: "http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=ttc&r=%route",
                     events: {
                         onMatch: {
-                            event: "{omw.start}.events.onStops"
+                            event: "{omw.section}.events.onResults"
                         }
                     },
-                    model: {
-                        route: "{omw.start}.model.route.tag"
-                    },
-                    termMap: {
-                        route: "%route"
-                    },
-                    dataType: "xml",
-                    responseParser: "omw.autocomplete.parseStops"
-                },
-                createOnEvent: "onRoute"
+                    dataType: "xml"
+                }
             },
-            stops: {
+            results: {
                 type: "omw.results",
-                container: "{omw.start}.dom.stops",
+                container: "{omw.section}.dom.results",
                 options: {
                     events: {
                         onResults: {
-                            event: "{omw.start}.events.onStops"
+                            event: "{omw.section}.events.onResults"
                         },
                         onResult: {
-                            event: "{omw.start}.events.onStop"
-                        }
-                    }
-                }
-            },
-            routes: {
-                type: "omw.results",
-                container: "{omw.start}.dom.routes",
-                options: {
-                    events: {
-                        onResults: {
-                            event: "{omw.start}.events.onRoutes"
-                        },
-                        onResult: {
-                            event: "{omw.start}.events.onRoute"
+                            event: "{omw.section}.events.onResult"
                         }
                     }
                 }
             }
         },
         events: {
-            onRoutes: null,
-            onStops: null,
-            onRoute: null,
-            onStop: null
+            initAutocomplete: null,
+            onResult: null,
+            onResults: null,
+            cleared: null,
+            updated: null,
+            showOn: null,
+            hideOn: null
         },
         listeners: {
-            onRoute: "{that}.onRoute",
-            onStop: "{that}.onStop",
+            showOn: "{that}.showOn",
+            hideOn: "{that}.hideOn",
+            cleared: "{that}.cleared",
+            onResult: "{that}.onResult",
+            onResults: "{that}.onResults",
             prepareModelForRender: "{that}.prepareModelForRender"
         },
         protoTree: {
-            routeInput: {
-                value: "${route.title}",
-                decorators: [{
-                    type: "attrs",
-                    attributes: {
-                        placeholder: "${placeholders.routeInput}"
-                    }
-                }, {
-                    addClass: "{styles}.input"
-                }]
-            },
-            stopInput: {
-                value: "${stop.stopTitle}",
-                decorators: [{
-                    type: "attrs",
-                    attributes: {
-                        placeholder: "${placeholders.stopInput}"
-                    }
-                }, {
-                    addClass: "{styles}.input"
-                }, {
+            results: {
+                decorators: {
                     type: "jQuery",
                     func: "hide"
+                }
+            },
+            input: {
+                decorators: [{
+                    type: "attrs",
+                    attributes: {
+                        placeholder: "${placeholders.input}"
+                    }
+                }, {
+                    addClass: "{styles}.input"
                 }]
             }
         },
-        placeholders: {
-            routeInput: "routeInput",
-            stopInput: "stopInput"
-        },
+        placeholders: {},
         renderOnInit: true,
+        showOnInit: true,
         delay: 500
     });
 
-    omw.start.preInit = function (that) {
+    omw.section.preInit = function (that) {
         that.prepareModelForRender = function () {
             var placeholders = {};
             fluid.each(that.options.placeholders, function (val, key) {
@@ -134,27 +210,37 @@
             });
             that.applier.requestChange("placeholders", placeholders);
         };
-        that.onRoute = function (route) {
-            that.locate("routeInput").val(route.title);
-            that.applier.requestChange("route.tag", route.tag);
+        that.onResults = function (results) {
+            that.locate("results")[results.length > 0 ? "show" : "hide"]();
+            that.events.updated.fire();
         };
-        that.onStop = function (stop) {
-            that.applier.requestChange("stop", stop);
-            that.locate("stopInput").val(that.model.stop.title);
+        that.cleared = function () {
+            that.locate("results").hide();
+            that.events.updated.fire();
         };
-
-        that.applier.modelChanged.addListener("route.tag", function () {
-            that.locate("stopInput").show();
-        });
+        that.onResult = function (result) {
+            that.applier.requestChange("result", result);
+            that.locate("input").val(fluid.get(that.model, "result.title"));
+            that.locate("results").hide();
+        };
+        that.showOn = function () {
+            that.container.show();
+        };
+        that.hideOn = function () {
+            that.container.hide();
+        };
     };
 
-    omw.start.postInit = function (that) {
-        that.locate("routeInput").keydown(function () {
+    omw.section.postInit = function (that) {
+        if (!that.options.showOnInit) {
+            that.container.hide();
+        }
+        that.locate("input").keydown(function () {
             clearTimeout(that.outFirer);
-            var oldVal = that.locate("routeInput").val();
+            var oldVal = that.locate("input").val();
             that.outFirer = setTimeout(function () {
-                if (that.locate("routeInput").val() !== oldVal) {
-                    that.locate("stopInput").hide();
+                if (!that.locate("input").val()) {
+                    that.events.cleared.fire();
                 }
             }, that.options.delay);
         });
@@ -165,7 +251,6 @@
         events: {
             onResults: null,
             onResult: null
-
         },
         listeners: {
             onResults: "{that}.onResults",
