@@ -70,3 +70,24 @@ input, button {
 .omw-start-result:last-child {
     border-bottom: none;
 }
+.omw-start-direction {
+    width: 90%;
+    margin: auto;
+    background-color: #FFFFFF;
+    border: none;
+    text-align: left;
+    padding: 6px 5%;
+}
+.omw-start-direction-title {
+    color: #33B5E5;
+    margin-bottom: 10px;
+}
+.omw-start-direction-minute {
+    color: #FFF;
+    background: #33B5E5;
+    margin-right: 10px;
+    padding: 5px 10px;
+    border-radius: 100px;
+    display: inline-block;
+    overflow: auto;
+}

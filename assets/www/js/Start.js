@@ -154,6 +154,48 @@
         }
     });
 
+    fluid.defaults("omw.direction", {
+        gradeNames: ["autoInit", "fluid.rendererComponent"],
+        parentBundle: "{messageBundle}.resolver",
+        selectors: {
+            title: ".omwc-start-direction-title",
+            minute: ".omwc-start-direction-minute"
+        },
+        repeatingSelectors: ["minute"],
+        renderOnInit: true,
+        styles: {
+            title: "omw-start-direction-title",
+            minute: "omw-start-direction-minute"
+        },
+        strings: {},
+        protoTree: {
+            title: {
+                value: "${title}",
+                decorators: {
+                    addClass: "{styles}.title"
+                }
+            },
+            expander: {
+                repeatID: "minute",
+                type: "fluid.renderer.repeat",
+                pathAs: "prediction",
+                controlledBy: "predictions",
+                tree: {
+                    messagekey: "predictionMinutes",
+                    args: {
+                        minutes: "${{prediction}.minutes}"
+                    },
+                    decorators: {
+                        addClass: "{styles}.minute"
+                    }
+                }
+            }
+        }
+    });
+    omw.direction.preInit = function (that) {
+        that = that;
+    };
+
     fluid.defaults("omw.predictions", {
         gradeNames: ["autoInit", "fluid.rendererComponent"],
         parentBundle: "{messageBundle}.resolver",
@@ -168,8 +210,8 @@
             direction: ".omwc-start-direction"
         },
         styles: {
-            message: "omw-start-result",
-            direction: "omw-start-result"
+            message: "omw-start-message",
+            direction: "omw-start-direction"
         },
         components: {
             dataSource: {
@@ -201,13 +243,18 @@
             }, {
                 repeatID: "direction",
                 type: "fluid.renderer.repeat",
-                pathAs: "direction",
+                valueAs: "direction",
                 controlledBy: "directions",
                 tree: {
-                    value: "${{direction}.title}",
-                    decorators: {
+                    decorators: [{
                         addClass: "{styles}.direction"
-                    }
+                    }, {
+                        type: "fluid",
+                        func: "omw.direction",
+                        options: {
+                            model: "{direction}"
+                        }
+                    }]
                 }
             }]
         }
@@ -353,7 +400,7 @@
             that.applier.requestChange("placeholders", placeholders);
         };
         that.onResults = function (results) {
-            that.locate("results")[results.length > 0 ? "show" : "hide"]();
+            that.locate("results")[!results || results.length === 0 ? "hide" : "show"]();
             that.events.updated.fire();
         };
         that.cleared = function () {
@@ -372,6 +419,7 @@
         that.hideOn = function () {
             that.applier.requestChange("result", undefined);
             that.locate("input").val("");
+            that.locate("results").hide();
             that.container.hide();
         };
     };

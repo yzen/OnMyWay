@@ -1,5 +1,6 @@
 {
     "appName": "OnMyWay",
     "routeInput": "Type route",
-    "stopInput": "Type stop"
+    "stopInput": "Type stop",
+    "predictionMinutes": "%minutes min"
 }
