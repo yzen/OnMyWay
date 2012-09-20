@@ -74,13 +74,17 @@ input, button {
 .omw-start-predictions {
     display: none;
 }
-.omw-start-direction {
+.omw-start-direction, .omw-start-message {
     width: 90%;
     margin: auto;
     background-color: #FFFFFF;
     border: none;
     text-align: left;
     padding: 0.375em 5%;
+}
+.omw-start-message {
+    border-bottom: 1em solid #FF4444;
+    padding: 0;
 }
 .omw-start-direction-title {
     color: #33B5E5;

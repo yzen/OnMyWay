@@ -1,7 +1,7 @@
 {
     "appName": "OnMyWay",
-    "routeInput": "Type route",
-    "stopInput": "Type stop",
+    "routeInput": "Start typing your route",
+    "stopInput": "Start typing your stop",
     "minuteTime": "%minutes",
     "minuteText": "minutes"
 }

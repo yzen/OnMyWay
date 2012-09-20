@@ -199,9 +199,6 @@
             }
         }
     });
-    omw.direction.preInit = function (that) {
-        that = that;
-    };
 
     fluid.defaults("omw.predictions", {
         gradeNames: ["autoInit", "fluid.rendererComponent"],
@@ -214,7 +211,7 @@
             afterRender: "{that}.afterRender"
         },
         selectors: {
-            message: ".mwc-start-message",
+            message: ".omwc-start-message",
             direction: ".omwc-start-direction"
         },
         styles: {
