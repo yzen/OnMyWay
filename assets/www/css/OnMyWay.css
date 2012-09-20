@@ -47,6 +47,10 @@ input, button {
     padding: 0.625em;
     margin: 0.625em 0 0.938em 0;
 }
+.main .container .section.omw-start-stops {
+    background: #FFFFFF url("../images/stop.png") no-repeat 99% 0.5em;
+    background-size: 1em auto;
+}
 .omw-start-input {
     width: 90%;
     border: none;
