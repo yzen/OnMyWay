@@ -2,5 +2,6 @@
     "appName": "OnMyWay",
     "routeInput": "Type route",
     "stopInput": "Type stop",
-    "predictionMinutes": "%minutes min"
+    "minuteTime": "%minutes",
+    "minuteText": "minutes"
 }

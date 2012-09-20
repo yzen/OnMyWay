@@ -55,16 +55,12 @@
             onStopUpdated: null
         },
         listeners: {
-            afterStopSelected: "{that}.afterStopSelected",
             onStopUpdated: "{that}.hidePredictions",
             onRouteUpdated: "{that}.hidePredictions"
         }
     });
 
     omw.start.preInit = function (that) {
-        that.afterStopSelected = function () {
-            that.locate("predictions").show();
-        };
         that.hidePredictions = function () {
             that.locate("predictions").hide();
         };
@@ -159,13 +155,16 @@
         parentBundle: "{messageBundle}.resolver",
         selectors: {
             title: ".omwc-start-direction-title",
-            minute: ".omwc-start-direction-minute"
+            minute: ".omwc-start-direction-minute",
+            minuteTime: ".omwc-start-direction-minuteTime",
+            minuteText: ".omwc-start-direction-minuteText"
         },
         repeatingSelectors: ["minute"],
         renderOnInit: true,
         styles: {
             title: "omw-start-direction-title",
-            minute: "omw-start-direction-minute"
+            minuteTime: "omw-start-direction-minuteTime",
+            minuteText: "omw-start-direction-minuteText"
         },
         strings: {},
         protoTree: {
@@ -181,12 +180,20 @@
                 pathAs: "prediction",
                 controlledBy: "predictions",
                 tree: {
-                    messagekey: "predictionMinutes",
-                    args: {
-                        minutes: "${{prediction}.minutes}"
+                    minuteTime: {
+                        messagekey: "minuteTime",
+                        args: {
+                            minutes: "${{prediction}.minutes}"
+                        },
+                        decorators: {
+                            addClass: "{styles}.minuteTime"
+                        }
                     },
-                    decorators: {
-                        addClass: "{styles}.minute"
+                    minuteText: {
+                        messagekey: "minuteText",
+                        decorators: {
+                            addClass: "{styles}.minuteText"
+                        }
                     }
                 }
             }
@@ -203,7 +210,8 @@
             afterFetch: null
         },
         listeners: {
-            afterFetch: "{that}.refreshView"
+            afterFetch: "{that}.refreshView",
+            afterRender: "{that}.afterRender"
         },
         selectors: {
             message: ".mwc-start-message",
@@ -291,6 +299,9 @@
     };
 
     omw.predictions.preInit = function (that) {
+        that.afterRender = function () {
+            that.container.show();
+        };
         that.refreshView = function () {
             that.refreshView();
         };
