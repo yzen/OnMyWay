@@ -47,10 +47,7 @@ input, button {
     padding: 0.625em;
     margin: 0.625em 0 0.938em 0;
 }
-.main .container .section.omw-start-stops {
-    background: #FFFFFF url("../images/stop.png") no-repeat 99% 0.5em;
-    background-size: 1em auto;
-}
+.main .container .section.omw-start-stops {}
 .omw-start-input {
     width: 90%;
     border: none;
@@ -64,9 +61,9 @@ input, button {
     background-color: #FFFFFF;
 /*     border: 1px solid #BCBDBD; */
     border: none;
-    white-space: nowrap;
-    overflow: hidden;
-	text-overflow: ellipsis;
+/*     white-space: nowrap; */
+/*     overflow: hidden; */
+/* 	text-overflow: ellipsis; */
 	text-align: left;
 	border-bottom: thin solid #E5E5E5;
 	padding: 0.375em 5%;
@@ -94,8 +91,8 @@ input, button {
     color: #33B5E5;
     margin-bottom: 0.625em;
     padding: 1em 3em 2em 0;
-    background: url("../images/direction.png") no-repeat right 0.5em;
-    background-size: 2em auto;
+    background: url("../images/direction.png") no-repeat right 25%;
+    background-size: auto 50%;
     border-bottom: thin solid #878787;
 }
 .omw-start-direction-minuteTime {
