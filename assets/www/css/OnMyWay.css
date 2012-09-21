@@ -72,7 +72,7 @@ input, button {
     border-bottom: none;
 }
 
-.omw-start-predictions {
+.omw-start, .omw-start-predictions {
     display: none;
 }
 .omw-start-direction, .omw-start-message {

@@ -15,6 +15,7 @@
             stops: {}
         },
         components: {
+            instantiator: "{instantiator}",
             routes: {
                 type: "omw.section",
                 container: "{omw.start}.dom.routes",
@@ -42,36 +43,41 @@
             }
         },
         events: {
-            initRoutes: null,
+            ready: null,
+
             onRoutes: null,
             onRouteSelected: null,
             onRouteUpdated: null,
+
             initStops: {
                 event: "onRouteSelected"
             },
+
             onStops: null,
             onStopSelected: null,
             afterStopSelected: null,
             onStopUpdated: null
         },
         listeners: {
-            onStopUpdated: "{that}.hidePredictions",
-            onRouteUpdated: "{that}.hidePredictions"
+            onStopUpdated: "{that}.clearPredictions",
+            onRouteUpdated: "{that}.clearPredictions",
+            ready: "{that}.show"
         }
     });
 
     omw.start.preInit = function (that) {
-        that.hidePredictions = function () {
-            that.locate("predictions").hide();
+        that.show = function () {
+            that.container.show();
+        };
+        that.clearPredictions = function () {
+            if (that.predictions) {
+                that.instantiator.clearComponent(that, "predictions");
+            }
         };
     };
 
-    omw.start.postInit = function (that) {
-        that.locate("predictions").hide();
-    };
-
     omw.start.finalInit = function (that) {
-        that.events.initRoutes.fire();
+        that.events.ready.fire();
     };
 
     fluid.demands("autocomplete", "routes", {
@@ -94,7 +100,7 @@
                     event: "{omw.start}.events.onRouteUpdated"
                 },
                 initAutocomplete: {
-                    event: "{omw.start}.events.initRoutes"
+                    event: "{omw.start}.events.ready"
                 }
             },
             nickName: "routes",
@@ -208,7 +214,8 @@
         },
         listeners: {
             afterFetch: "{that}.refreshView",
-            afterRender: "{that}.afterRender"
+            afterRender: "{that}.afterRender",
+            onDestroy: "{that}.hide"
         },
         selectors: {
             message: ".omwc-start-message",
@@ -301,6 +308,9 @@
         };
         that.refreshView = function () {
             that.refreshView();
+        };
+        that.hide = function () {
+            that.container.hide();
         };
     };
 
