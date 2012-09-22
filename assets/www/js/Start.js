@@ -380,9 +380,15 @@
         listeners: {
             showOn: "{that}.showOn",
             hideOn: "{that}.hideOn",
-            cleared: "{that}.cleared",
-            onResult: "{that}.onResult",
-            onResults: "{that}.onResults",
+            cleared: [
+                "{that}.cleared",
+                "{that}.events.updated.fire"
+            ],
+            onResult: [
+                "{that}.onResult",
+                "{that}.events.afterResult.fire"
+            ],
+            onResults: "{that}.events.updated.fire",
             prepareModelForRender: "{that}.prepareModelForRender"
         },
         protoTree: {
@@ -410,6 +416,10 @@
     });
 
     omw.section.preInit = function (that) {
+        that.applier.modelChanged.addListener("result", function () {
+            var title = fluid.get(that.model, "result.title") || "";
+            that.locate("input").val(title);
+        });
         that.prepareModelForRender = function () {
             var placeholders = {};
             fluid.each(that.options.placeholders, function (val, key) {
@@ -417,26 +427,17 @@
             });
             that.applier.requestChange("placeholders", placeholders);
         };
-        that.onResults = function (results) {
-            that.locate("results")[!results || results.length === 0 ? "hide" : "show"]();
-            that.events.updated.fire();
-        };
         that.cleared = function () {
             that.locate("results").hide();
-            that.events.updated.fire();
         };
         that.onResult = function (result) {
             that.applier.requestChange("result", result);
-            that.locate("input").val(fluid.get(that.model, "result.title"));
-            that.locate("results").hide();
-            that.events.afterResult.fire();
         };
         that.showOn = function () {
             that.container.show();
         };
         that.hideOn = function () {
             that.applier.requestChange("result", undefined);
-            that.locate("input").val("");
             that.locate("results").hide();
             that.container.hide();
         };
@@ -508,10 +509,12 @@
         that.onResults = function (data) {
             that.applier.requestChange("results", data);
             that.refreshView();
+            that.container[!data || data.length === 0 ? "hide" : "show"]();
         };
         that.onResult = function () {
             that.applier.requestChange("results", undefined);
             that.refreshView();
+            that.container.hide();
         };
     };
 
