@@ -327,7 +327,8 @@
         parentBundle: "{messageBundle}.resolver",
         selectors: {
             input: ".omwc-start-section-input",
-            results: ".omwc-start-section-results"
+            results: ".omwc-start-section-results",
+            result: ".omwc-start-section-result"
         },
         styles: {
             input: "omw-start-input"
@@ -365,9 +366,21 @@
                         }
                     }
                 }
+            },
+            result: {
+                type: "omw.result",
+                container: "{omw.section}.dom.result",
+                options: {
+                    model: "{omw.section}.model.result",
+                    listeners: {
+                        onResultAction: "{omw.section}.events.onResultAction"
+                    }
+                },
+                createOnEvent: "onResult"
             }
         },
         events: {
+            onResultAction: null,
             initAutocomplete: null,
             onResult: null,
             afterResult: null,
@@ -384,6 +397,7 @@
                 "{that}.cleared",
                 "{that}.events.updated.fire"
             ],
+            onResultAction: "{that}.onResultAction",
             onResult: [
                 "{that}.onResult",
                 "{that}.events.afterResult.fire"
@@ -392,6 +406,12 @@
             prepareModelForRender: "{that}.prepareModelForRender"
         },
         protoTree: {
+            result: {
+                decorators: {
+                    type: "jQuery",
+                    func: "hide"
+                }
+            },
             results: {
                 decorators: {
                     type: "jQuery",
@@ -416,6 +436,12 @@
     });
 
     omw.section.preInit = function (that) {
+        that.onResultAction = function () {
+            var input = that.locate("input");
+            input.parent().show();
+            input.focus();
+            that.locate("result").hide();
+        };
         that.applier.modelChanged.addListener("result", function () {
             var title = fluid.get(that.model, "result.title") || "";
             that.locate("input").val(title);
@@ -432,13 +458,17 @@
         };
         that.onResult = function (result) {
             that.applier.requestChange("result", result);
+            that.locate("input").parent().hide();
+            that.locate("result").show();
         };
         that.showOn = function () {
             that.container.show();
+            that.locate("input").parent().show();
         };
         that.hideOn = function () {
             that.applier.requestChange("result", undefined);
             that.locate("results").hide();
+            that.locate("result").hide();
             that.container.hide();
         };
     };
@@ -455,6 +485,51 @@
                 }
             }, that.options.delay);
         });
+    };
+
+    fluid.defaults("omw.result", {
+        gradeNames: ["autoInit", "fluid.rendererComponent"],
+        selectors: {
+            result: ".omwc-start-section-result-result"
+        },
+        events: {
+            onResultAction: null
+        },
+        listeners: {
+            onResultAction: "{that}.onResultAction"
+        },
+        styles: {
+            result: "omw-start-section-result-result"
+        },
+        model: {},
+        renderOnInit: true,
+        produceTree: "omw.result.produceTree"
+    });
+
+    omw.result.preInit = function (that) {
+        that.onResultAction = function () {
+            that.applier.requestChange("result", undefined);
+            that.container.hide();
+        };
+    };
+
+    omw.result.postInit = function (that) {
+        that.container.addClass(that.options.styles.container);
+    };
+
+    omw.result.produceTree = function (that) {
+        return {
+            result: {
+                value: "${title}",
+                decorators: [{
+                    addClass: "{styles}.result"
+                }, {
+                    type: "jQuery",
+                    func: "click",
+                    args: that.events.onResultAction.fire
+                }]
+            }
+        };
     };
 
     fluid.defaults("omw.results", {
