@@ -3,5 +3,6 @@
     "routeInput": "Start typing your route",
     "stopInput": "Start typing your stop",
     "minuteTime": "%minutes",
-    "minuteText": "minutes"
+    "minuteText": "minutes",
+    "expand-routes": "Show on map"
 }

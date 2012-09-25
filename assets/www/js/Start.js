@@ -1,4 +1,4 @@
-/*global jQuery, fluid, omw*/
+/*global jQuery, fluid, omw, google*/
 (function (fluid, $) {
 
     "use strict";
@@ -331,7 +331,8 @@
             result: ".omwc-start-section-result"
         },
         styles: {
-            input: "omw-start-input"
+            input: "omw-start-input",
+            result: "omw-start-section-result"
         },
         components: {
             context: {
@@ -407,10 +408,12 @@
         },
         protoTree: {
             result: {
-                decorators: {
+                decorators: [{
                     type: "jQuery",
                     func: "hide"
-                }
+                }, {
+                    addClass: "{styles}.result"
+                }]
             },
             results: {
                 decorators: {
@@ -487,11 +490,42 @@
         });
     };
 
+    fluid.demands("omw.result", "routes", {
+        options: {
+            selectors: {
+                map: ".omwc-start-section-result-map",
+                expand: ".omwc-start-section-result-expand"
+            },
+            styles: {
+                map: "omw-start-section-result-map",
+                expand: "omw-start-section-result-expand",
+                expandActive: "omw-start-section-result-expandActive"
+            },
+            components: {
+                dataSource: {
+                    type: "omw.dataSource.URL",
+                    options: {
+                        url: "http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=ttc&terse&r=%route",
+                        termMap: {
+                            route: "{omw.result}.model.tag"
+                        },
+                        dataType: "xml",
+                        responseParser: "omw.result.responseParser"
+                    }
+                }
+            },
+            finalInitFunction: "omw.result.finalInitRoutes",
+            produceTree: "omw.result.produceTreeRoutes"
+        }
+    });
+
     fluid.defaults("omw.result", {
+        parentBundle: "{messageBundle}.resolver",
         gradeNames: ["autoInit", "fluid.rendererComponent"],
         selectors: {
             result: ".omwc-start-section-result-result"
         },
+        strings: {},
         events: {
             onResultAction: null
         },
@@ -515,6 +549,94 @@
 
     omw.result.postInit = function (that) {
         that.container.addClass(that.options.styles.container);
+    };
+
+    omw.result.responseParser = function (data) {
+        var route = $("route", data),
+            stopsData = $("route>stop", data),
+            stops = {},
+            directionsData = $("route>direction", data);
+        fluid.each(stopsData, function (stop) {
+            stop = $(stop);
+            stops[stop.attr("tag")] = new google.maps.LatLng(parseFloat(stop.attr("lat")), parseFloat(stop.attr("lon")));
+        });
+        return {
+            latMin: parseFloat(route.attr("latMin")),
+            latMax: parseFloat(route.attr("latMax")),
+            lonMin: parseFloat(route.attr("lonMin")),
+            lonMax: parseFloat(route.attr("lonMax")),
+            directions: fluid.transform(directionsData, function (direction) {
+                direction = $(direction);
+                return fluid.transform($("stop", direction), function (stop) {
+                    stop = $(stop);
+                    return stops[stop.attr("tag")];
+                });
+            })
+        };
+    };
+
+    omw.result.produceTreeRoutes = function (that) {
+        var tree = omw.result.produceTree(that);
+        fluid.merge(null, tree, {
+            map: {
+                decorators: [{
+                    type: "jQuery",
+                    func: "hide"
+                }, {
+                    addClass: "{styles}.map"
+                }]
+            },
+            expand: {
+                messagekey: "expand-routes",
+                decorators: [{
+                    addClass: "{styles}.expand"
+                }, {
+                    type: "jQuery",
+                    func: "click",
+                    args: function () {
+                        that.loadMap();
+                    }
+                }]
+            }
+        });
+        return tree;
+    };
+
+    omw.result.finalInitRoutes = function (that) {
+        that.loadMap = function () {
+            that.locate("map").toggle();
+            that.locate("expand").toggleClass(that.options.styles.expandActive);
+            if (that.map) {
+                return;
+            }
+            that.dataSource.get(null, function (data) {
+                var latlngbounds = new google.maps.LatLngBounds(
+                    new google.maps.LatLng(data.latMin, data.lonMin),
+                    new google.maps.LatLng(data.latMax, data.lonMax)
+                );
+                that.map = new google.maps.Map(that.locate("map")[0], {
+                    center: latlngbounds.getCenter(),
+                    zoom: 10,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    backgroundColor: "white",
+                    disableDefaultUI: true,
+                    draggable: false,
+                    zoomControl: false
+                });
+                that.map.fitBounds(latlngbounds);
+                fluid.each(data.directions, function (direction) {
+                    new google.maps.Polyline({
+                        path: direction,
+                        strokeColor: "#FF0000",
+                        strokeOpacity: 1,
+                        strokeWeight: 2,
+                        map: that.map,
+                        clickable: false,
+                        editable: false,
+                    });
+                });
+            });
+        };
     };
 
     omw.result.produceTree = function (that) {
