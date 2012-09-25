@@ -627,7 +627,7 @@
                 fluid.each(data.directions, function (direction) {
                     new google.maps.Polyline({
                         path: direction,
-                        strokeColor: "#FF0000",
+                        strokeColor: "#33B5E5",
                         strokeOpacity: 1,
                         strokeWeight: 2,
                         map: that.map,
