@@ -124,6 +124,8 @@ input, button {
     color: #33B5E5;
     text-align: left;
     padding: 0.625em 1em 0.625em 5%;
+}
+.omw-start-section-resultRow .omw-start-section-result-result {
     display: table-cell;
     vertical-align: middle;
 }
