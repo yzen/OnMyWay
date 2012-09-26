@@ -2,7 +2,7 @@
 
     "use strict";
 
-    fluid.setLogging(true);
+    fluid.setLogging(false);
 
     var eUC = "encodeURIComponent:";
 
