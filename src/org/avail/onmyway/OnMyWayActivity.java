@@ -9,6 +9,6 @@ public class OnMyWayActivity extends DroidGap {
     public void onCreate(Bundle savedInstanceState) {
         super.setIntegerProperty("splashscreen", R.drawable.splash);
         super.onCreate(savedInstanceState);
-        super.loadUrl("file:///android_asset/www/html/index.html", 5000);
+        super.loadUrl("file:///android_asset/www/html/index.html", 3000);
     }
 }
