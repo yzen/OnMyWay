@@ -89,24 +89,33 @@ input, button {
 .omw-start-section-result {
     text-align: left;
 }
+.omw-start-section-resultRow {
+    display: table;
+    width: 100%;
+}
 .omw-start-section-result-map {
     height: 15em;
     margin-top: 0.125em;
 }
+.omw-start-section-result-expandParent {
+    display: table-cell;
+    vertical-align: middle;
+}
 .omw-start-section-result-expand {
-    color: rgba(72, 72, 74, 0.5);
-    text-align: left;
-    padding: 0.625em 1em;
-    font-size: small;
-    display: inline-block;
-    border-radius: 4px;
     background-color: #33B5E5;
-    color: #FFF;
     border: 1px solid #51A0B3;
+    border-radius: 4px 4px 4px 4px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    color: #FFFFFF;
+    font-size: small;
+    margin: 0.225em;
+    padding: 0.625em 1em;
+    text-align: center;
     text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.25);
+    vertical-align: middle;
+    min-width: 7em;
+    display: table-cell;
     float: right;
-    margin: 0.225em 0.225em 0 0;
 }
 .omw-start-section-result-expandActive {
     background-color: rgba(51, 181, 229, 0.5);
@@ -115,8 +124,8 @@ input, button {
     color: #33B5E5;
     text-align: left;
     padding: 0.625em 1em 0.625em 5%;
-    display: inline-block;
-    width: 54%;
+    display: table-cell;
+    vertical-align: middle;
 }
 .omw-start-direction-title {
     color: #33B5E5;
